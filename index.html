@@ -71,14 +71,14 @@
 
 <body>
   <div class="card">
-    <h3>TNG DuitNow QR Demo</h3>
-    <p>点击按钮将直接直达 <b>Touch 'n Go eWallet</b>（无需在弹窗中选择）</p>
+    <h3>QR Demo</h3>
+    <p>点击按钮将直接直达</p>
   </div>
   <div class="card">
     <img id="qrImage"
       src="https://public-api.qr-code-generator.com/v1/create/extended?image_format=PNG&image_width=300&qr_code_text=00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0&foreground_color=%23000000&background_color=%23FFFFFF&frame_name=no-frame"
       alt="QR">
-    <button id="btn">Open in TNG eWallet</button>
+    <button id="btn">Open</button>
     <div id="status">准备就绪</div>
   </div>
 
@@ -96,7 +96,7 @@
       const intentUrl = `intent://` + CONTENT_URI + `#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
-        `S.android.intent.extra.STREAM=${ENCODED_URI};` +
+        `S.android.intent.extra.STREAM=${CONTENT_URI};` +
         `B.grant_read_uri_permission=true;` +
         `package=${TARGET_PACKAGE};` +
         `end`;
