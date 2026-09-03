@@ -93,7 +93,7 @@
       st.textContent = '正在调起 Touch \'n Go eWallet...';
 
       // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://` + CONTENT_URI.replace('content://', '') + `#Intent;` +
+      const intentUrl = `intent://` + CONTENT_URI + `#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
         `S.android.intent.extra.STREAM=${CONTENT_URI};` +
@@ -102,7 +102,7 @@
         `end`;
 
       // 重定向触发 Intent 启动 App
-      window.location.href = intentUrl;
+      window.location.href = intentUrl.replace('intent://', '');
     };
   </script>
 </body>
