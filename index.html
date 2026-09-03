@@ -87,22 +87,23 @@
 
     // 图片 URL 地址
     const CONTENT_URI = "content://media/external/images/media/1000000078";
-    const TARGET_PACKAGE = 'tngewallet://';
+    const ENCODED_URI = encodeURIComponent(CONTENT_URI);
+    const TARGET_PACKAGE = 'my.com.tngdigital.ewallet';
 
     document.getElementById('btn').onclick = () => {
       st.textContent = '正在调起 Touch \'n Go eWallet...';
 
       // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://` + CONTENT_URI + `#Intent;` +
+      const intentUrl = `intent:#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
-        `S.android.intent.extra.STREAM=${CONTENT_URI};` +
+        `S.android.intent.extra.STREAM=${ENCODED_URI};` +
         `B.grant_read_uri_permission=true;` +
         `package=${TARGET_PACKAGE};` +
         `end`;
 
       // 重定向触发 Intent 启动 App
-      window.location.href = intentUrl.replace('intent://', '');
+      window.location.href = intentUrl;
     };
   </script>
 </body>
