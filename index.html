@@ -86,21 +86,18 @@
     const st = document.getElementById('status');
 
     // 图片 URL 地址
-    const RAW_QR_URL = 'https://public-api.qr-code-generator.com/v1/create/extended?image_format=PNG&image_width=300&qr_code_text=00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0&foreground_color=%23000000&background_color=%23FFFFFF&frame_name=no-frame';
-
-    // 对链接进行 URL 编码，防止参数中的特殊字符导致 Intent 解析失败
-    const ENCODED_URL = encodeURIComponent(RAW_QR_URL);
+    const CONTENT_URI = "content://media/external/images/media/1000000078";
     const TARGET_PACKAGE = 'my.com.tngdigital.ewallet';
 
     document.getElementById('btn').onclick = () => {
       st.textContent = '正在调起 Touch \'n Go eWallet...';
 
       // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://#Intent;` +
+      const intentUrl = `intent://` + CONTENT_URI + `#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
-        `S.android.intent.extra.STREAM=${ENCODED_URL};` +
-        `S.android.intent.extra.TEXT=${ENCODED_URL};` +
+        `S.android.intent.extra.STREAM=${ENCODED_URI};` +
+        `B.grant_read_uri_permission=true;` +
         `package=${TARGET_PACKAGE};` +
         `end`;
 
