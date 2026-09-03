@@ -1,17 +1,134 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TNG QR — Share Demo</title>
   <style>
-    body { font-family: system-ui, sans-serif; display: flex; align-items: center;
-           justify-content: center; min-height: 100vh; margin: 0;
-           background: #111; color: #eee; }
-    h1 { font-size: 3rem; }
+    body {
+      font-family: system-ui;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      background: #0e1726;
+      color: #e8eef7;
+      min-height: 100vh
+    }
+
+    .card {
+      background: #182234;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center
+    }
+
+    h3 {
+      margin: 0 0 8px
+    }
+
+    p {
+      color: #9fb0c7;
+      font-size: 14px;
+      margin: 4px 0
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      border: 0;
+      border-radius: 12px;
+      background: #0d6efd;
+      color: #fff;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+
+    button:active {
+      opacity: .8
+    }
+
+    img {
+      width: 200px;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      display: block;
+      margin: 12px auto
+    }
+
+    #status {
+      color: #f5b942;
+      font-size: 13px;
+      text-align: center;
+      min-height: 18px;
+      margin-top: 10px;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Hello, world! 👋</h1>
+  <div class="card">
+    <h3>TNG DuitNow QR Demo</h3>
+    <p>点按钮 → 面板选 <b>Touch 'n Go eWallet</b> → 支付页自动弹出</p>
+  </div>
+  <div class="card">
+    <!-- 替换为你实际的 HTTPS 图片 URL -->
+    <img id="qrImage"
+      src="https://public-api.qr-code-generator.com/v1/create/extended?image_format=PNG&image_width=300&qr_code_text=00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0&foreground_color=%23000000&background_color=%23FFFFFF&frame_name=no-frame"
+      alt="QR">
+    <button id="btn">Share to TNG eWallet</button>
+    <div id="status">在面板中选 Touch n Go eWallet</div>
+  </div>
+
+  <script>
+    const st = document.getElementById('status');
+
+    // 建议把你的 HTTPS 图片 URL 定义为常量（须与 img 的 src 保持一致）
+    const HTTPS_QR_URL = 'https://public-api.qr-code-generator.com/v1/create/extended?image_format=PNG&image_width=300&qr_code_text=00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0&foreground_color=%23000000&background_color=%23FFFFFF&frame_name=no-frame';
+
+    document.getElementById('btn').onclick = async () => {
+      st.textContent = '正在获取图片...';
+      try {
+        // 1. 通过 fetch 请求远程 HTTPS 图片的二进制数据
+        // ⚠️ 注意：存储该图片的 HTTPS 服务器必须开启 CORS 跨域许可
+        const response = await fetch(HTTPS_QR_URL);
+
+        if (!response.ok) {
+          throw new Error(`图片加载失败 (HTTP ${response.status})`);
+        }
+
+        const blob = await response.blob();
+
+        // 2. 将二进制 Blob 数据在内存中封装为 File 文件对象
+        const file = new File([blob], 'tng_qr.png', { type: blob.type || 'image/png' });
+
+        // 3. 检查当前设备/浏览器是否支持文件分享
+        if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+          st.textContent = '此浏览器不支持文件分享（需 Android Chrome 75+）';
+          return;
+        }
+
+        // 4. 调起系统分享面板
+        await navigator.share({
+          files: [file],
+          title: 'TNG QR'
+        });
+
+        st.textContent = '在面板中选 Touch n Go eWallet';
+
+      } catch (e) {
+        // 排除用户手动取消（AbortError）的情况
+        if (e.name !== 'AbortError') {
+          st.textContent = '失败: ' + e.message;
+        } else {
+          st.textContent = '在面板中选 Touch n Go eWallet';
+        }
+      }
+    };
+  </script>
 </body>
+
 </html>
