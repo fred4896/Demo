@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 
 <head>
   <meta charset="utf-8">
@@ -10,128 +10,75 @@
       font-family: system-ui;
       max-width: 480px;
       margin: 0 auto;
-      padding: 32px 20px;
+      padding: 24px 16px;
       background: #0e1726;
-      color: #e8eef7;
-      min-height: 100vh;
-    }
-
-    .card {
-      background: #182234;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    h3 {
-      margin: 0 0 8px;
-    }
-
-    p {
-      color: #9fb0c7;
-      font-size: 14px;
-      margin: 4px 0;
+      color: #e8eef7
     }
 
     button {
       width: 100%;
       padding: 16px;
-      font-size: 17px;
+      font-size: 16px;
       border: 0;
       border-radius: 12px;
-      background: #0d6efd;
-      color: #fff;
-      margin-top: 8px;
-      cursor: pointer;
+      margin: 8px 0;
+      color: #fff
     }
 
-    button:active {
-      opacity: .8;
+    .a {
+      background: #0d6efd
     }
 
-    img {
-      width: 200px;
-      border-radius: 8px;
-      background: #fff;
-      padding: 10px;
-      display: block;
-      margin: 12px auto;
+    .b {
+      background: #6c757d
     }
 
-    #status {
+    #st {
       color: #f5b942;
       font-size: 13px;
-      text-align: center;
       min-height: 18px;
-      margin-top: 10px;
+      text-align: center;
+      margin-top: 12px
+    }
+
+    p {
+      color: #9fb0c7;
+      font-size: 13px
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h3>QR Demo</h3>
-    <p>点击按钮将直接直达</p>
-  </div>
-  <div class="card">
-    <img id="qrImage"
-      src="https://public-api.qr-code-generator.com/v1/create/extended?image_format=PNG&image_width=300&qr_code_text=00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0&foreground_color=%23000000&background_color=%23FFFFFF&frame_name=no-frame"
-      alt="QR">
-    <button id="btn">Open</button>
-    <div id="status">准备就绪</div>
-  </div>
+  <p>按钮 A</p>
+  <button class="a" id="btnA">带图片</button>
 
-  <!-- <script>
-    const st = document.getElementById('status');
+  <p>按钮 B</p>
+  <button class="b" id="btnB">空面板</button>
 
-    // 图片 URL 地址
-    const CONTENT_URI = "content://media/external/images/media/1000000078";
-    const ENCODED_URI = encodeURIComponent(CONTENT_URI);
-    const TARGET_PACKAGE = 'my.com.tngdigital.ewallet';
-
-
-    document.getElementById('btn').onclick = () => {
-      st.textContent = '正在调起 Touch \'n Go eWallet...';
-
-      // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://scan/` + CONTENT_URI + `#Intent;` +
-        `action=android.intent.action.SEND;` +
-        `type=image/png;` +
-        `S.android.intent.extra.STREAM=${CONTENT_URI};` +
-        `B.grant_read_uri_permission=true;` +
-        `package=${TARGET_PACKAGE};` +
-        `end`;
-
-      // 重定向触发 Intent 启动 App
-      window.location.href = intentUrl;
-
-      console.log(ENCODED_URI)
-      console.log(intentUrl)
-
-    };
-  </script> -->
+  <div id="st"></div>
 
   <script>
-    const st = document.getElementById('status');
+    const st = document.getElementById('st');
 
-    document.getElementById('btn').onclick = async () => {
+    document.getElementById('btnA').onclick = async () => {
       try {
-        // 图片来源换成你自己的（需同源或 CORS 允许）
         const blob = await (await fetch('qr.png')).blob();
         const file = new File([blob], 'qr.png', { type: blob.type || 'image/png' });
-
-        // 能力检测：文件分享是 Level 2，老浏览器没有
         if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
           st.textContent = '此浏览器不支持文件分享';
           return;
         }
-
         await navigator.share({ files: [file], title: 'QR' });
-        st.textContent = '分享完成（或用户取消了）';
+        st.textContent = 'A 完成（图片已附带，接收方拿到真实文件）';
       } catch (e) {
-        st.textContent = e.name === 'AbortError' ? '用户取消' : '失败: ' + e.message;
+        st.textContent = 'A: ' + (e.name === 'AbortError' ? '用户取消' : e.message);
       }
+    };
+
+    document.getElementById('btnB').onclick = () => {
+      st.textContent = 'B 已发起（面板会弹，但没有图片载荷）';
+      // 仅 action + type，无 extras —— Chrome 会剥掉网页附加的任何 extra
+      location.href = 'intent://send/#Intent;action=android.intent.action.SEND;type=image/png;end';
     };
   </script>
 </body>
