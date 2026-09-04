@@ -52,13 +52,17 @@
   <p>按钮 A：navigator.share，带图片文件（真实分享）</p>
   <button class="a" id="btnA">A · navigator.share 带图片</button>
 
-  <p>按钮 B：intent:// ACTION_SEND，不带图片（空分享，extras 被 Chrome 剥掉）</p>
-  <button class="b" id="btnB">B · intent:// SEND 空面板</button>
+  <p>按钮 B：intent:// 直接指向 TNG eWallet，extras 带 QR 图片 URL</p>
+  <button class="b" id="btnB">B · intent:// SEND → TNG</button>
 
   <div id="st"></div>
 
   <script>
     const st = document.getElementById('st');
+
+    // qr.png 的公网地址 —— 给按钮 B 的 intent extras 使用
+    const RAW_QR_URL = 'https://fred4896.github.io/Demo/qr.png';
+    const TARGET_PACKAGE = 'my.com.tngdigital.ewallet';
 
     document.getElementById('btnA').onclick = async () => {
       try {
@@ -76,9 +80,22 @@
     };
 
     document.getElementById('btnB').onclick = () => {
-      st.textContent = 'B 已发起（面板会弹，但没有图片载荷）';
-      // 仅 action + type，无 extras —— Chrome 会剥掉网页附加的任何 extra
-      location.href = 'intent://send/#Intent;action=android.intent.action.SEND;type=image/png;end';
+      st.textContent = "正在调起 Touch 'n Go eWallet...";
+
+      // 对链接进行 URL 编码，防止参数中的特殊字符导致 Intent 解析失败
+      const ENCODED_URL = encodeURIComponent(RAW_QR_URL);
+
+      // 构建 Android Intent URI：指定包名以绕过选择弹窗
+      const intentUrl = `intent://#Intent;` +
+        `action=android.intent.action.SEND;` +
+        `type=image/png;` +
+        `S.android.intent.extra.STREAM=${ENCODED_URL};` +
+        `S.android.intent.extra.TEXT=${ENCODED_URL};` +
+        `package=${TARGET_PACKAGE};` +
+        `end`;
+
+      // 重定向触发 Intent 启动 App
+      window.location.href = intentUrl;
     };
   </script>
 </body>
