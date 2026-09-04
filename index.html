@@ -60,8 +60,8 @@
   <script>
     const st = document.getElementById('st');
 
-    // qr.png 的公网地址 —— 给按钮 B 的 intent extras 使用
-    const RAW_QR_URL = 'https://fred4896.github.io/Demo/qr.png';
+    // 手机相册里 QR 图片的 MediaStore content URI —— 给按钮 B 的 intent extras 使用
+    const RAW_QR_URL = 'content://media/external/images/media/1000000078';
     const TARGET_PACKAGE = 'my.com.tngdigital.ewallet';
 
     document.getElementById('btnA').onclick = async () => {
@@ -80,13 +80,13 @@
     };
 
     document.getElementById('btnB').onclick = () => {
-      st.textContent = "正在调起 Touch 'n Go eWallet...";
+      st.textContent = "正在调起";
 
       // 对链接进行 URL 编码，防止参数中的特殊字符导致 Intent 解析失败
       const ENCODED_URL = encodeURIComponent(RAW_QR_URL);
 
       // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://#Intent;` +
+      const intentUrl = `intent://send/#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
         `S.android.intent.extra.STREAM=${ENCODED_URL};` +
