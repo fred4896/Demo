@@ -82,7 +82,7 @@
     <div id="status">准备就绪</div>
   </div>
 
-  <script>
+  <!-- <script>
     const st = document.getElementById('status');
 
     // 图片 URL 地址
@@ -95,7 +95,7 @@
       st.textContent = '正在调起 Touch \'n Go eWallet...';
 
       // 构建 Android Intent URI：指定包名以绕过选择弹窗
-      const intentUrl = `intent://` + CONTENT_URI + `#Intent;` +
+      const intentUrl = `intent://scan/` + CONTENT_URI + `#Intent;` +
         `action=android.intent.action.SEND;` +
         `type=image/png;` +
         `S.android.intent.extra.STREAM=${CONTENT_URI};` +
@@ -109,6 +109,29 @@
       console.log(ENCODED_URI)
       console.log(intentUrl)
 
+    };
+  </script> -->
+
+  <script>
+    const st = document.getElementById('status');
+
+    document.getElementById('btn').onclick = async () => {
+      try {
+        // 图片来源换成你自己的（需同源或 CORS 允许）
+        const blob = await (await fetch('qr.png')).blob();
+        const file = new File([blob], 'qr.png', { type: blob.type || 'image/png' });
+
+        // 能力检测：文件分享是 Level 2，老浏览器没有
+        if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+          st.textContent = '此浏览器不支持文件分享';
+          return;
+        }
+
+        await navigator.share({ files: [file], title: 'QR' });
+        st.textContent = '分享完成（或用户取消了）';
+      } catch (e) {
+        st.textContent = e.name === 'AbortError' ? '用户取消' : '失败: ' + e.message;
+      }
     };
   </script>
 </body>
