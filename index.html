@@ -1,17 +1,147 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TNG QR — Share Demo</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <link rel="icon" href="icon-192.png">
   <style>
-    body { font-family: system-ui, sans-serif; display: flex; align-items: center;
-           justify-content: center; min-height: 100vh; margin: 0;
-           background: #111; color: #eee; }
-    h1 { font-size: 3rem; }
+    body {
+      font-family: system-ui;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      background: #0e1726;
+      color: #e8eef7;
+      min-height: 100vh
+    }
+
+    .card {
+      background: #182234;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center
+    }
+
+    h3 { margin: 0 0 8px }
+
+    p { color: #9fb0c7; font-size: 14px; margin: 4px 0 }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      border: 0;
+      border-radius: 12px;
+      background: #0d6efd;
+      color: #fff;
+      margin-top: 8px;
+      cursor: pointer
+    }
+
+    button:active { opacity: .8 }
+
+    canvas, img {
+      width: 200px;
+      height: 200px;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      display: block;
+      margin: 12px auto
+    }
+
+    #status {
+      color: #f5b942;
+      font-size: 13px;
+      text-align: center;
+      min-height: 18px;
+      margin-top: 10px
+    }
   </style>
 </head>
+
 <body>
-  <h1>Hello, world! 👋</h1>
+  <div class="card">
+    <h3>TNG DuitNow QR Demo (PWA)</h3>
+    <p>点按钮 → 面板选 <b>Touch 'n Go eWallet</b> → 支付页自动弹出</p>
+    <p>安装到桌面后,别的 App 分享图片也可以丢给这个 App(Share Target)</p>
+  </div>
+
+  <div class="card">
+    <!-- QR 在本地 canvas 生成,不再跨域 fetch,彻底绕开 CORS -->
+    <canvas id="qrCanvas" width="300" height="300"></canvas>
+    <button id="btn">Share to TNG eWallet</button>
+    <div id="status">在面板中选 Touch n Go eWallet</div>
+  </div>
+
+  <div class="card" id="receivedCard" style="display:none">
+    <h3>收到分享进来的图片</h3>
+    <img id="receivedImg" alt="shared">
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    const st = document.getElementById('status');
+
+    // EMVCo DuitNow QR payload(和之前 URL 里 qr_code_text 的一样)
+    const QR_PAYLOAD = '00020201021126580014A000000615000101065641600226125707800032079RHBQR2381645204597153034585802MY5918NORSAZILAH+MAKE+UP6002MY61051320062300309ROA3112090713norsazilah1238264EF624610E711386912E962B864942124E3DB42E423F9F29557473E4F279E3AF06304AFA0';
+
+    const canvas = document.getElementById('qrCanvas');
+
+    QRCode.toCanvas(canvas, QR_PAYLOAD, {
+      width: 300,
+      margin: 2,
+      color: { dark: '#000000', light: '#FFFFFF' }
+    }).catch(e => st.textContent = 'QR 生成失败: ' + e.message);
+
+    document.getElementById('btn').onclick = () => {
+      st.textContent = '正在准备图片...';
+      canvas.toBlob(async blob => {
+        try {
+          if (!blob) throw new Error('canvas 导出失败');
+
+          const file = new File([blob], 'tng_qr.png', { type: 'image/png' });
+
+          if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+            st.textContent = '此浏览器不支持文件分享(需 Android Chrome / iOS Safari)';
+            return;
+          }
+
+          await navigator.share({ files: [file], title: 'TNG QR' });
+          st.textContent = '在面板中选 Touch n Go eWallet';
+
+        } catch (e) {
+          st.textContent = e.name === 'AbortError'
+            ? '在面板中选 Touch n Go eWallet'
+            : '失败: ' + e.message;
+        }
+      }, 'image/png');
+    };
+
+    // 读取 Share Target 收到的图片(存于 Cache 'shared-qr-image')
+    async function showSharedImage() {
+      try {
+        const cache = await caches.open('tng-qr-v1');
+        const res = await cache.match('shared-qr-image');
+        if (!res) return;
+        const blob = await res.blob();
+        document.getElementById('receivedImg').src = URL.createObjectURL(blob);
+        document.getElementById('receivedCard').style.display = '';
+        await cache.delete('shared-qr-image');
+      } catch (e) { /* 忽略 */ }
+    }
+
+    // 注册 Service Worker(PWA + Share Target 必须)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => showSharedImage());
+    }
+  </script>
 </body>
+
 </html>
